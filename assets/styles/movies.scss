@@ -1,0 +1,36 @@
+
+.movie-card {
+  min-height: 270px;
+  height: auto;
+}
+
+.movie-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 270px;
+}
+
+.description-text {
+  max-height: 100px;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie-metadata {
+  margin-top: auto;
+}
+
+.genres-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.badge {
+  font-size: 0.8rem;
+  font-weight: normal;
+}
