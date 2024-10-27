@@ -16,7 +16,7 @@ git clone git@github.com:ibou/we-movies.git
 
 2. Se déplacer dans le dossier du projet
 ```bash
-cd wemovies
+cd we-movies
 ```
 
 3. Lancer le projet 
