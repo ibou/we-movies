@@ -62,7 +62,6 @@
                                     <!-- Conteneur du contenu avec padding -->
                                     <div class="movie-content p-3" style="flex: 1;">
                                         <h5 class="card-title">{{ movie.title }}
-
                                             <div class="rating-stars d-inline-block ms-2">
                                                 {% set rating = movie.vote_average / 2 %}
                                              {% for i in 1..5 %}
@@ -101,7 +100,7 @@
 
                                                 </small>
                                                 <div class="text-end mt-2">
-                                                    <a href="#" class="btn btn-primary btn-sm">Lire les détails</a>
+                                                    <a href="#" class="btn btn-primary btn-sm show-details" data-movie-id="{{ movie.id }}">Lire les détails</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -114,5 +113,47 @@
             </div>
         </div>
     </div>
+
+{# Ajoutez cette nouvelle section pour le modal des détails du film #}
+<div class="modal fade" id="movieDetailsModal" tabindex="-1" aria-labelledby="movieDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="movieDetailsModalLabel">Détails du film</h5>
+            </div>
+            <div class="modal-body" id="movieDetailsContent">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const movieLinks = document.querySelectorAll('.show-details');
+            const modalElement = document.getElementById('movieDetailsModal');
+            
+            movieLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const movieId = this.getAttribute('data-movie-id');
+                    fetch(`/movie/${movieId}/details`)
+                        .then(response => response.text())
+                        .then(html => {
+                            document.getElementById('movieDetailsContent').innerHTML = html;
+                            const modal = new bootstrap.Modal(modalElement);
+                            modal.show();
+                        });
+                });
+            });
+
+            // Initialisation du modal
+            modalElement.addEventListener('show.bs.modal', function (event) {
+                // Code à exécuter lorsque le modal s'ouvre
+            });
+        });
+    </script>
+{% endblock %}
 
 {% endblock %}
