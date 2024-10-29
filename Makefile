@@ -97,3 +97,7 @@ launch:
 
 ## init project
 init-project: start composer-install yarn-install-and-run launch
+
+## up php server in coontainer
+up-php-server:
+	$(PHP) symfony server:start

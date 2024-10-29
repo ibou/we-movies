@@ -42,7 +42,7 @@ class TmdbRequestBuilder
         ];
     }
 
-    public function buildMovieDetailsQuery()
+    public function buildMovieDetailsQuery(): array
     {
         return [
             'language' => TmdbApiClient::LANGUAGE_FR,

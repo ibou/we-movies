@@ -5,6 +5,9 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     tmdb.api_token: '%env(TMDB_TOKEN_KEY)%'
+    tmdb.api_version: '%env(TMDB_API_VERSION)%'
+    tmdb_base_uri: '%env(TMDB_BASE_URL)%'
+
 
 services:
     # default configuration for services in *this* file
@@ -20,6 +23,9 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+#
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    #App\Service\Api\TmdbApiClient:
+     #   arguments:
+     #      $apiToken: '%tmdb.api_token%'
+            #$httpClient: '@tmdb.client'

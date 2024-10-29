@@ -6,5 +6,5 @@ namespace App\Contracts;
 
 interface MovieDataTransformerInterface
 {
-    public function transformWithGenres(array $movies, array $genres, string $keyGenre): array;
+    public function transformWithGenres(array|\ArrayIterator $movies, array $genres, string $keyGenre): array;
 }

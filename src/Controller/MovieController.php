@@ -44,8 +44,9 @@ class MovieController extends AbstractController
         ]);
     }
 
-    private function fetchMovies(?string $query, array $selectedGenres): array
+    private function fetchMovies(?string $query, array $selectedGenres): array|\ArrayIterator
     {
+
         return $query
             ? $this->movieService->searchMovies($query)
             : $this->movieService->getMovies($selectedGenres);
