@@ -6,11 +6,17 @@ namespace App\Service;
 
 use App\Contracts\MovieDataTransformerInterface;
 use App\Dto\MovieDto;
+use App\Service\Serializer\MovieSerializer;
 
 class MovieDataTransformer implements MovieDataTransformerInterface
 {
     public const KEY_GENRE_ALL = 'genre_ids';
     public const KEY_GENRE_DETAILS = 'genres';
+
+    public function __construct(
+        private MovieSerializer $serializer
+    ) {
+    }
 
     public function transformWithGenres(array|\ArrayIterator $movies, array $genres, string $keyGenre = self::KEY_GENRE_ALL): array
     {
@@ -36,20 +42,20 @@ class MovieDataTransformer implements MovieDataTransformerInterface
     {
         $genreMap = [];
         foreach ($genres as $genre) {
-            $genreMap[$genre['id']] = $genre['name'];
+            $genreMap[$genre->id] = $genre->name;
         }
         return $genreMap;
     }
 
     private function attachGenresToMovies(array $movies, array $genreMap, string $keyGenre): array
     {
-        foreach ($movies as $key => $movie) {
-            $movies[$key]['genres'] = [];
+        $sereializedMovies = $this->serializer->serializeMovieList($movies);
+        foreach ($sereializedMovies as $key => $movie) {
             foreach ($movie[$keyGenre] as $genreId) {
-                $movies[$key]['genres'][$genreId] = $genreMap[$genreId];
+                $sereializedMovies[$key]['genres'][$genreId] = $genreMap[$genreId];
             }
         }
-        return $movies;
+        return $sereializedMovies;
     }
 
     private function attachGenresToMoviesObjectPaginated(array|\ArrayIterator $movies, array $genreMap): array|\ArrayIterator

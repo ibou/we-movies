@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Contracts\MovieApiClientInterface;
 use App\Contracts\MovieDataTransformerInterface;
+use App\Dto\MovieListResponseDto;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,8 +15,8 @@ use Symfony\Component\Routing\Attribute\Route;
 class MovieController extends AbstractController
 {
     public function __construct(
-        public readonly MovieApiClientInterface       $movieService,
-        public readonly MovieDataTransformerInterface $movieDataTransformer
+        private readonly MovieApiClientInterface       $movieService,
+        private readonly MovieDataTransformerInterface $movieDataTransformer,
     )
     {
     }
@@ -25,31 +26,32 @@ class MovieController extends AbstractController
     {
         $query = $request->query->get('query');
         $selectedGenres = $request->query->all('genres');
-
-        $movies = $this->fetchMovies(query: $query, selectedGenres: $selectedGenres);
         $genres = $this->movieService->getGenres();
+        $movies = $this->fetchMovies(query: $query, selectedGenres: $selectedGenres);
+        dump($movies);
+
         $moviesTransformedWithGenres = $this->movieDataTransformer->transformWithGenres(
-            movies: $movies['results'],
-            genres: $genres['genres'],
+            movies: $movies->results,
+            genres: $genres,
         );
 
         return $this->render('movie/index.html.twig', [
             'movies' => $moviesTransformedWithGenres['movies'],
             'genres' => $moviesTransformedWithGenres['genres'],
-            'page' => $movies['page'],
-            'total_pages' => $movies['total_pages'],
+            'page' => $movies->page,
+            'total_pages' => $movies->totalPages,
             'selected_genres' => $selectedGenres,
-            'total_results' => $movies['total_results'],
+            'total_results' => $movies->totalResults,
 
         ]);
     }
 
-    private function fetchMovies(?string $query, array $selectedGenres): array|\ArrayIterator
+    private function fetchMovies(?string $query, array $selectedGenres): array|\ArrayIterator|MovieListResponseDto
     {
 
         return $query
             ? $this->movieService->searchMovies($query)
-            : $this->movieService->getMovies($selectedGenres);
+            : $this->movieService->getMovies(selectedGenres: $selectedGenres);
     }
 
     #[Route('/movie/{movieId}/details', name: 'app_movie_details')]
