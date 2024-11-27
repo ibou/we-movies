@@ -10,19 +10,13 @@ use App\Service\Mapper\GenreMapper;
 
 final readonly class MovieSerializer
 {
-    public function __construct(
-        private GenreMapper $genreMapper
-    )
-    {
-    }
-
     /**
      * Désérialise une liste de films
      */
     public function deserializeMovieList(array $moviesData): array
     {
         return array_map(
-            fn(array $movieData) => $this->deserializeMovie($movieData),
+            fn(array $movieData): \App\Dto\MovieDto => $this->deserializeMovie($movieData),
             $moviesData
         );
     }
@@ -30,7 +24,7 @@ final readonly class MovieSerializer
     public function serializeMovieList(array $movies): array
     {
         return array_map(
-            fn(MovieDto $movie) => $this->serializeMovie($movie),
+            fn(MovieDto $movieDto): array => $this->serializeMovie($movieDto),
             $movies
         );
     }
@@ -43,9 +37,9 @@ final readonly class MovieSerializer
         return MovieDto::fromArray($movieData);
     }
 
-    public function serializeMovie(MovieDto $movie): array
+    public function serializeMovie(MovieDto $movieDto): array
     {
-        return $movie->toArray();
+        return $movieDto->toArray();
     }
 
     /**
@@ -54,7 +48,7 @@ final readonly class MovieSerializer
     public function deserializeGenres(array $genresData): array
     {
         return array_map(
-            fn(array $genreData) => GenreDto::fromArray($genreData),
+            fn(array $genreData): \App\Dto\GenreDto => GenreDto::fromArray($genreData),
             $genresData
         );
     }

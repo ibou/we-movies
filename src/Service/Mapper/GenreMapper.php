@@ -10,19 +10,17 @@ use Symfony\Contracts\Cache\ItemInterface;
 final class GenreMapper
 {
     private const CACHE_KEY = 'tmdb_genres_map';
-    private const CACHE_TTL = 86400; // 24 heures
+
+     // 24 heures
 
     private array $genres = [];
 
     public function __construct(
         //private TmdbApiClient $tmdbClient,
-        private CacheInterface $cache
+        private readonly CacheInterface $cache
     ) {
     }
 
-    /**
-     * @param array $genres
-     */
     public function setGenres(array $genres): void
     {
         $this->genres = $genres;

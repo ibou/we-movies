@@ -8,7 +8,7 @@ framework:
 
     http_client:
         scoped_clients:
-            tmdb.client:
+            http.client:
                 base_uri: '%env(TMDB_BASE_URL)%'
                 headers:
                     Accept: 'application/json'

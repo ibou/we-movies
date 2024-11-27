@@ -14,10 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class MovieController extends AbstractController
 {
-    public function __construct(
-        private readonly MovieApiClientInterface       $movieService,
-        private readonly MovieDataTransformerInterface $movieDataTransformer,
-    )
+    public function __construct(private readonly MovieApiClientInterface       $movieApiClient, private readonly MovieDataTransformerInterface $movieDataTransformer)
     {
     }
 
@@ -26,7 +23,7 @@ class MovieController extends AbstractController
     {
         $query = $request->query->get('query');
         $selectedGenres = $request->query->all('genres');
-        $genres = $this->movieService->getGenres();
+        $genres = $this->movieApiClient->getGenres();
         $movies = $this->fetchMovies(query: $query, selectedGenres: $selectedGenres);
         dump($movies);
 
@@ -50,19 +47,19 @@ class MovieController extends AbstractController
     {
 
         return $query
-            ? $this->movieService->searchMovies($query)
-            : $this->movieService->getMovies(selectedGenres: $selectedGenres);
+            ? $this->movieApiClient->searchMovies($query)
+            : $this->movieApiClient->getMovies(selectedGenres: $selectedGenres);
     }
 
     #[Route('/movie/{movieId}/details', name: 'app_movie_details')]
     public function details(int $movieId): Response
     {
 
-        $movie = $this->movieService->getMovieDetails($movieId);
-        $genres = $this->movieService->getGenres();
+        $movieDto = $this->movieApiClient->getMovieDetails($movieId);
+        $genres = $this->movieApiClient->getGenres();
 
         $movieTransformedWithGenres = $this->movieDataTransformer->transformWithGenres(
-            movies: [$movie],
+            movies: [$movieDto],
             genres: $genres['genres'],
             keyGenre: 'genres'
         );

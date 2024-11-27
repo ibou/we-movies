@@ -11,10 +11,11 @@ use App\Service\Serializer\MovieSerializer;
 class MovieDataTransformer implements MovieDataTransformerInterface
 {
     public const KEY_GENRE_ALL = 'genre_ids';
+
     public const KEY_GENRE_DETAILS = 'genres';
 
     public function __construct(
-        private MovieSerializer $serializer
+        private readonly MovieSerializer $movieSerializer
     ) {
     }
 
@@ -44,36 +45,20 @@ class MovieDataTransformer implements MovieDataTransformerInterface
         foreach ($genres as $genre) {
             $genreMap[$genre->id] = $genre->name;
         }
+
         return $genreMap;
     }
 
     private function attachGenresToMovies(array $movies, array $genreMap, string $keyGenre): array
     {
-        $sereializedMovies = $this->serializer->serializeMovieList($movies);
+        $sereializedMovies = $this->movieSerializer->serializeMovieList($movies);
         foreach ($sereializedMovies as $key => $movie) {
             foreach ($movie[$keyGenre] as $genreId) {
                 $sereializedMovies[$key]['genres'][$genreId] = $genreMap[$genreId];
             }
         }
+
         return $sereializedMovies;
-    }
-
-    private function attachGenresToMoviesObjectPaginated(array|\ArrayIterator $movies, array $genreMap): array|\ArrayIterator
-    {
-        /** @var array<int, MovieDto> */
-        foreach ($movies as &$movie) {
-            $movieGenres = [];
-            if ((is_object($movie) && property_exists($movie, 'genreIds')) ||
-                (is_array($movie) && isset($movie['genreIds']))) {
-                foreach ($movie->genreIds as $genreId) {
-                    $movieGenres[$genreId] = $genreMap[$genreId];
-                }
-                $movie->genres = $movieGenres;
-                unset($movie->genreIds);
-            }
-        }
-
-        return $movies;
     }
 
     private function attachGenresDetaisToMovies(array $movies, string $keyGenre): array
@@ -84,6 +69,7 @@ class MovieDataTransformer implements MovieDataTransformerInterface
                 array_column($movie[$keyGenre], 'name')
             );
         }
+
         return $movies;
     }
 }

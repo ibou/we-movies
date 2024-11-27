@@ -16,7 +16,7 @@ class TmdbRequestBuilder
             'include_video' => false,
         ];
 
-        if (!empty($genres)) {
+        if ($genres !== []) {
             $query['with_genres'] = implode(',', $genres);
         }
 

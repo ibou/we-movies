@@ -19,9 +19,9 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
     public function __construct(
         #[Autowire(value: '%tmdb.api_token%')] private string   $apiToken,
         #[Autowire(value: '%tmdb.api_version%')] private string $apiVersion,
-        private HttpClientInterface                             $tmdbClient,
-        private TmdbRequestBuilder                              $requestBuilder,
-        private MovieSerializer                                 $serializer,
+        private HttpClientInterface                             $httpClient,
+        private TmdbRequestBuilder                              $tmdbRequestBuilder,
+        private MovieSerializer                                 $movieSerializer,
     )
     {
     }
@@ -29,10 +29,10 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
     public function getMovies(array $selectedGenres = []): MovieListResponseDto
     {
         try {
-            $query = $this->requestBuilder->buildMovieQuery($selectedGenres);
+            $query = $this->tmdbRequestBuilder->buildMovieQuery($selectedGenres);
             $response = $this->makeRequest("/discover/movie", $query);
 
-            $dto = $this->serializer->deserializeMovieList($response['results'] ?? []);
+            $dto = $this->movieSerializer->deserializeMovieList($response['results'] ?? []);
 
             return new MovieListResponseDto(
                 page: $response['page'] ?? 1,
@@ -40,8 +40,8 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
                 totalPages: $response['total_pages'] ?? 0,
                 results: $dto
             );
-        } catch (\Exception $e) {
-            throw new ApiException("Erreur lors de la récupération des films: " . $e->getMessage(), $e->getCode(), $e);
+        } catch (\Exception $exception) {
+            throw new ApiException("Erreur lors de la récupération des films: " . $exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
@@ -49,20 +49,20 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
     {
         try {
 
-            if ($this->apiVersion) {
-                $endpoint = "/{$this->apiVersion}" . $endpoint;
+            if ($this->apiVersion !== '' && $this->apiVersion !== '0') {
+                $endpoint = '/' . $this->apiVersion . $endpoint;
             }
 
-            $response = $this->tmdbClient->request('GET', $endpoint, [
+            $response = $this->httpClient->request('GET', $endpoint, [
                 'headers' => [
-                    'Authorization' => "Bearer {$this->apiToken}",
+                    'Authorization' => 'Bearer ' . $this->apiToken,
                 ],
                 'query' => $query,
             ]);
 
             if ($response->getStatusCode() !== Response::HTTP_OK) {
                 throw new ApiException(
-                    "Erreur API HTTP {$response->getStatusCode()}: {$response->getContent(false)}"
+                    sprintf('Erreur API HTTP %s: %s', $response->getStatusCode(), $response->getContent(false))
                 );
             }
 
@@ -71,8 +71,8 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
 
             return $data;
 
-        } catch (TransportExceptionInterface $e) {
-            throw new ApiException("Erreur de transport HTTP: " . $e->getMessage(), $e->getCode(), $e);
+        } catch (TransportExceptionInterface $transportException) {
+            throw new ApiException("Erreur de transport HTTP: " . $transportException->getMessage(), $transportException->getCode(), $transportException);
         }
     }
 
@@ -94,7 +94,7 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
 
         if (isset($response['status_code']) && $response['status_code'] !== 1) {
             throw new ApiException(
-                $response['status_message'] ?? 'Erreur de l\'API TMDB',
+                $response['status_message'] ?? "Erreur de l'API TMDB",
                 $response['status_code'] ?? 500
             );
         }
@@ -103,36 +103,36 @@ final readonly class TmdbApiClient implements MovieApiClientInterface
     public function searchMovies(string $query): array
     {
         try {
-            $params = $this->requestBuilder->buildSearchQuery($query);
+            $params = $this->tmdbRequestBuilder->buildSearchQuery($query);
             $response = $this->makeRequest("/search/movie", $params);
 
-            return $this->serializer->deserializeMovieList($response['results'] ?? []);
-        } catch (\Exception $e) {
-            throw new ApiException("Erreur lors de la recherche de films: " . $e->getMessage(), $e->getCode(), $e);
+            return $this->movieSerializer->deserializeMovieList($response['results'] ?? []);
+        } catch (\Exception $exception) {
+            throw new ApiException("Erreur lors de la recherche de films: " . $exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
     public function getMovieDetails(int $movieId): MovieDto
     {
         try {
-            $query = $this->requestBuilder->buildMovieDetailsQuery();
-            $response = $this->makeRequest("/movie/{$movieId}", $query);
+            $query = $this->tmdbRequestBuilder->buildMovieDetailsQuery();
+            $response = $this->makeRequest('/movie/' . $movieId, $query);
 
-            return $this->serializer->deserializeMovie($response);
-        } catch (\Exception $e) {
-            throw new ApiException("Erreur lors de la récupération des détails du film: " . $e->getMessage(), $e->getCode(), $e);
+            return $this->movieSerializer->deserializeMovie($response);
+        } catch (\Exception $exception) {
+            throw new ApiException("Erreur lors de la récupération des détails du film: " . $exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
     public function getGenres(): array
     {
         try {
-            $query = $this->requestBuilder->buildGenreQuery();
+            $query = $this->tmdbRequestBuilder->buildGenreQuery();
             $response = $this->makeRequest("/genre/movie/list", $query);
 
-            return $this->serializer->deserializeGenres($response['genres'] ?? []);
-        } catch (\Exception $e) {
-            throw new ApiException("Erreur lors de la récupération des genres: " . $e->getMessage(), $e->getCode(), $e);
+            return $this->movieSerializer->deserializeGenres($response['genres'] ?? []);
+        } catch (\Exception $exception) {
+            throw new ApiException("Erreur lors de la récupération des genres: " . $exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
